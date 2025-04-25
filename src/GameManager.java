@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.HashMap;
+import java.util.*;
 
 public class GameManager {
     static HashMap<String,Condition> conditions = new HashMap<>();
@@ -55,16 +52,18 @@ public class GameManager {
                 }
             }
         }
-        String[] maxComparisons = new String[]{"smallest","biggest","strictbiggest","strictsmallest"};
+        String[] maxComparisons = new String[]{"smallest","biggest","strictbiggest","strictsmallest","middle","strictmiddle"};
         for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 4; j++) {
+            for (int j = 0; j < 6; j++) {
                 int finalI = i;
                 int finalJ = j;
                  conditions.put(colors[i]+maxComparisons[j],nums -> switch (finalJ){
                      case 0 -> nums[finalI] <= nums[0] && nums[finalI] <= nums[1] && nums[finalI] <= nums[2];
                      case 1 -> nums[finalI] >= nums[0] && nums[finalI] >= nums[1] && nums[finalI] >= nums[2];
                      case 2 -> nums[finalI] > nums[(finalI+1)%3] && nums[finalI] >nums[(finalI+2)%3];
-                     default -> nums[finalI] < nums[(finalI+1)%3] && nums[finalI] < nums[(finalI+2)%3];
+                     case 3 -> nums[finalI] < nums[(finalI+1)%3] && nums[finalI] < nums[(finalI+2)%3];
+                     case 4 -> (nums[finalI] <= nums[(finalI+1)%3] && nums[finalI] >= nums[(finalI+2)%3])||(nums[finalI] >= nums[(finalI+1)%3] && nums[finalI] <= nums[(finalI+2)%3]);
+                     default ->(nums[finalI] < nums[(finalI+1)%3] && nums[finalI] > nums[(finalI+2)%3])||(nums[finalI] > nums[(finalI+1)%3] && nums[finalI] < nums[(finalI+2)%3]);
                  });
             }
         }
@@ -117,6 +116,27 @@ public class GameManager {
                 });
             }
         }
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                for (int k = 0; k < 3; k++) {
+                    if (i != k) {
+                        for (int l = 0; l < 3; l++) {
+                            if (l != i && l != k) {
+                                int finalI = i;
+                                int finalK = k;
+                                int finalJ = j;
+                                int finalL = l;
+                                conditions.put(colors[i] + "plus" + colors[k] + comparisons[j] + colors[l], nums -> switch (finalJ) {
+                                    case 0 -> nums[finalI] + nums[finalK] == nums[finalL];
+                                    case 1 -> nums[finalI] + nums[finalK] > nums[finalL];
+                                    default -> nums[finalI] + nums[finalK] < nums[finalL];
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
         conditions.put("norepitition",nums -> countDuplicates(nums)==1);
         conditions.put("pair",nums -> countDuplicates(nums)==2);
         conditions.put("trio",nums -> countDuplicates(nums)==3);
@@ -125,13 +145,30 @@ public class GameManager {
         conditions.put("descending", nums -> nums[0] > nums[1] && nums[1] > nums[2]);
         conditions.put("noorder",nums -> !((nums[0] < nums[1] && nums[1] < nums[2])||(nums[0] > nums[1] && nums[1] > nums[2])));
         conditions.put("noascending",nums -> nums[1] != nums[0]+1 && nums[2] != nums[1]+1);
-        conditions.put("1ascending", nums -> nums[1] == nums[0]+1 || nums[2] == nums[1]+1 && !(nums[1] == nums[0]+1 && nums[2] == nums[1]+1));
-        conditions.put("2ascending",nums -> nums[1] == nums[0]+1 && nums[2] == nums[1]+1);
+        conditions.put("2ascending", nums -> nums[1] == nums[0]+1 || nums[2] == nums[1]+1 && !(nums[1] == nums[0]+1 && nums[2] == nums[1]+1));
+        conditions.put("3ascending",nums -> nums[1] == nums[0]+1 && nums[2] == nums[1]+1);
         conditions.put("noascendingordescending",nums -> nums[1] != nums[0]+1 && nums[2] != nums[1]+1 && nums[1] != nums[0]-1 && nums[2] != nums[1]-1);
-        conditions.put("1ascendingordescending",nums ->  (nums[1] == nums[0]+1 || nums[2] == nums[1]+1 && !(nums[1] == nums[0]+1 && nums[2] == nums[1]+1)) ||
+        conditions.put("nodescending",nums -> nums[1] != nums[0]-1 && nums[2] != nums[1]-1);
+        conditions.put("2descending", nums -> nums[1] == nums[0]-1 || nums[2] == nums[1]-1 && !(nums[1] == nums[0]-1 && nums[2] == nums[1]-1));
+        conditions.put("3descending",nums -> nums[1] == nums[0]-1 && nums[2] == nums[1]-1);
+        conditions.put("2ascendingordescending",nums ->  (nums[1] == nums[0]+1 || nums[2] == nums[1]+1 && !(nums[1] == nums[0]+1 && nums[2] == nums[1]+1)) ||
                 (nums[1] == nums[0]-1 || nums[2] == nums[1]-1 && !(nums[1] == nums[0]-1 && nums[2] == nums[1]-1)));
-        conditions.put("2ascendingordescending", nums -> (nums[1] == nums[0]+1 && nums[2] == nums[1]+1) ||
+        conditions.put("3ascendingordescending", nums -> (nums[1] == nums[0]+1 && nums[2] == nums[1]+1) ||
                 (nums[1] == nums[0]-1 && nums[2] == nums[1]-1));
+        conditions.put("nopower",nums -> !isPower(2,represent(nums)) && !isPower(3,represent(nums)));
+        conditions.put("square",nums -> isPower(2,represent(nums)));
+        conditions.put("cube",nums -> isPower(3,represent(nums)));
+    }
+    public static boolean isPower(int power, int value){
+        int r = (int) Math.pow(value,1.0/power);
+        int total = r;
+        for (int i = 0; i < power-1; i++) {
+            total *= r;
+        }
+        return total == value;
+    }
+    public static int represent(int[] nums){
+        return nums[0]*100 + nums[1] + nums[2];
     }
     public static int countDuplicates(int[] nums){
         int[] count = new int[5];
@@ -163,23 +200,26 @@ public class GameManager {
         Card c = new Card();
         for (int i = 0; i < things.length; i++) {
             c.conditions.add(conditions.get(things[i]));
+            if (conditions.get(things[i])==null){
+                throw new GameException("Card not found: " + things[i]);
+            }
         }
         return c;
     }
     public static void addCards(){
         cards.add(card("blueequals1","bluegreater1"));
-        cards.add(card("blueless3","blueequal3","bluegreater3"));
-        cards.add(card("yellowless3","yellowequal3","yellowgreater3"));
-        cards.add(card("yellowless4","yellowequal4","yellowgreater4"));
+        cards.add(card("blueless3","blueequals3","bluegreater3"));
+        cards.add(card("yellowless3","yellowequals3","yellowgreater3"));
+        cards.add(card("yellowless4","yellowequals4","yellowgreater4"));
         cards.add(card("blueeven","blueodd"));
         cards.add(card("yelloweven","yellowodd"));
         cards.add(card("purpleeven","purpleodd"));
         cards.add(card("zero1","one1","two1","three1"));
         cards.add(card("zero3","one3","two3","three3"));
         cards.add(card("zero4","one4","two4","three4"));
-        cards.add(card("yellowlessblue","yellowequalblue","yellowgreaterblue"));
-        cards.add(card("purplelessblue","purpleequalblue","purplegreaterblue"));
-        cards.add(card("purplelessyellow","purpleequalyellow","purplegreateryellow"));
+        cards.add(card("yellowlessblue","yellowequalsblue","yellowgreaterblue"));
+        cards.add(card("purplelessblue","purpleequalsblue","purplegreaterblue"));
+        cards.add(card("purplelessyellow","purpleequalsyellow","purplegreateryellow"));
         cards.add(card("bluestrictsmallest","yellowstrictsmallest","purplestrictsmallest"));
         cards.add(card("bluestrictbiggest","yellowstrictbiggest","purplestrictbiggest"));
         cards.add(card("moreeven","moreodd"));
@@ -205,34 +245,47 @@ public class GameManager {
         cards.add(card("summultiple3","summultiple4","summultiple5"));
         cards.add(card("blueplusyellowequals4","bluepluspurpleequals4","yellowpluspurpleequals4"));
         cards.add(card("blueplusyellowequals6","bluepluspurpleequals6","yellowpluspurpleequals6"));
-        cards.add(card("blueequal1","bluegreater1","yellowequal1","yellowgreater1","purpleequal1","purplegreater1"));
-        cards.add(card("blueequal3","bluegreater3","blueless3","yellowequal3","yellowgreater3","yellowless3","purpleequal3","purplegreater3","purpleless3"));
-        cards.add(card("blueequal4","bluegreater4","blueless4","yellowequal4","yellowgreater4","yellowless4","purpleequal4","purplegreater4","purpleless4"));
+        cards.add(card("blueequals1","bluegreater1","yellowequals1","yellowgreater1","purpleequals1","purplegreater1"));
+        cards.add(card("blueequals3","bluegreater3","blueless3","yellowequals3","yellowgreater3","yellowless3","purpleequals3","purplegreater3","purpleless3"));
+        cards.add(card("blueequals4","bluegreater4","blueless4","yellowequals4","yellowgreater4","yellowless4","purpleequals4","purplegreater4","purpleless4"));
         cards.add(card("bluestrictsmallest","yellowstrictsmallest","purplestrictsmallest","bluestrictbiggest","yellowstrictbiggest","purplestrictbiggest"));
-        cards.add(card("yellowlessblue","yellowequalblue","yellowgreaterblue","purplelessblue","purpleequalblue","purplegreaterblue"));
-        cards.add(card("yellowlessblue","yellowequalblue","yellowgreaterblue","purplelessyellow","purpleequalyellow","purplegreateryellow"));
+        cards.add(card("yellowlessblue","yellowequalsblue","yellowgreaterblue","purplelessblue","purpleequalsblue","purplegreaterblue"));
+        cards.add(card("yellowlessblue","yellowequalsblue","yellowgreaterblue","purplelessyellow","purpleequalsyellow","purplegreateryellow"));
         cards.add(card("zero1","one1","two1","zero3","one3","two3"));
         cards.add(card("zero3","one3","two3","zero4","one4","two4"));
         cards.add(card("zero1","one1","two1","zero4","one4","two4"));
-        cards.add(card("yellowlessblue","yellowequalblue","yellowgreaterblue","purplelessblue","purpleequalblue","purplegreaterblue","purplelessyellow","purpleequalyellow","purplegreateryellow"));
+        cards.add(card("yellowlessblue","yellowequalsblue","yellowgreaterblue","purplelessblue","purpleequalsblue","purplegreaterblue","purplelessyellow","purpleequalsyellow","purplegreateryellow"));
+        //Expansion cards
+        cards.add(card("bluemiddle","yellowmiddle","purplemiddle"));
+        cards.add(card("bluestrictmiddle","yellowstrictmiddle","purplestrictmiddle"));
+
+        cards.add(card("nopower","square","cube"));
+
+        cards.add(card("bluemiddle","yellowmiddle","purplemiddle","bluesmallest","yellowsmallest","purplesmallest","bluebiggest","yellowbiggest","purplebiggest"));
+        cards.add(card("three1","three2","three3","three4","three5","purpleequals3","yellowequals3","blueequals3","summultiple3","threeeven","threeodd","cube","3ascending","3descending"));
+        cards.add(card("blueplusyellowequals7","purpleplusyellowequals7","bluepluspurpleequals7","blueplusyellowless7","bluepluspurpleless7","purpleplusyellowless7","blueplusyellowgreater7","bluepluspurplegreater7","purpleplusyellowgreater7"));
+        cards.add(card("zero1","zero2","zero3","zero4","zero5","zeroeven","zeroodd","norepitition","nopair","noascending","nodescending","noorder","nopower"));
+
+        cards.add(card("blueplusyellowequalspurple","blueplusyellowlesspurple","blueplusyellowgreaterpurple"));
+        cards.add(card("blueplusyellowequalspurple","bluepluspurpleequalsyellow","purpleplusyellowequalsblue"));
+        cards.add(card("blueplusyellowequalspurple","blueplusyellowlesspurple","blueplusyellowgreaterpurple","bluepluspurpleequalsyellow","bluepluspurplelessyellow","bluepluspurplegreateryellow","purpleplusyellowequalsblue","purpleplusyellowlessblue","purpleplusyellowgreaterblue"));
+
     }
     public static ArrayList<Card> cards = new ArrayList<>();
     public static void main(String[] args) {
         addCards();
-        ArrayList<Card> cards2 = new ArrayList<>();
-        cards2.add(cards.get(7));
-        cards2.add(cards.get(13));
-        cards2.add(cards.get(16));
-        cards2.add(cards.get(18));
-        cards2.add(cards.get(19));
-        ArrayList<Condition> conditions2 = new ArrayList<>();
-        conditions2.add(conditions.get("zero1"));
-        conditions2.add(conditions.get("yellowstrictsmallest"));
-        conditions2.add(conditions.get("twoeven"));
-        conditions2.add(conditions.get("yellowplusblueless6"));
-        conditions2.add(conditions.get("norepitition"));
-        int[] solution = new int[]{3,2,5};
-        Game daily = new Game(cards2,conditions2,solution);
-       
+        Player.runPlayer();
+    }
+    public static void runBot(int times){
+        int totalTurnNum = 0;
+        int totalChecksMade= 0;
+        for (int i = 0; i < times; i++) {
+            Game game = GameGenerator.generateGame();
+            SimpleSolver.solveGame(game);
+            totalTurnNum+=game.turnNum;
+            totalChecksMade += game.totalChecksMade;
+        }
+        System.out.println("Average Turns used: " + ((double)totalTurnNum / times) + " Average Checks made: " + ((double)totalChecksMade / times));
+
     }
 }

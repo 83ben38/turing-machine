@@ -4,6 +4,7 @@ public class Game {
     ArrayList<Card> cards;
     int turnNum;
     int checksMade;
+    int totalChecksMade;
     int[] lastGuess;
     private ArrayList<Condition> conditions;
     private int[] solution;
@@ -14,7 +15,14 @@ public class Game {
         this.solution = solution;
         turnNum = 0;
         checksMade = 3;
-
+        totalChecksMade = 0;
+    }
+    public Game cloneGame(){
+        return new Game(cards,conditions,solution);
+    }
+    public int[] getSolution(){
+        isUsable = false;
+        return solution;
     }
     public boolean checkCard(int cardNum, int[] nums){
         if (!isUsable){
@@ -25,6 +33,7 @@ public class Game {
                 throw new GameException("Invalid Guess");
             }
         }
+        totalChecksMade++;
         if (checksMade == 3){
             lastGuess = nums;
             turnNum++;
